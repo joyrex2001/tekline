@@ -28,7 +28,6 @@ spec:
     - name: git-push-user-email
   workspaces:
     - name: workspace
-      workspace: workspace
 ```
 
 ## Permissions
