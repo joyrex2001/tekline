@@ -1,0 +1,71 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: create-namespace
+spec:
+  params:
+    - name: TEKLINE_IMAGE
+      default: docker.io/joyrex2001/tekline:latest
+    - name: git-repository-name
+    - name: git-revision
+
+  results:
+    - name: namespace
+
+  steps:
+    - name: create-namespace
+      image: "$(params.TEKLINE_IMAGE)"
+      script: |
+        #!/bin/bash
+        set -euxo pipefail
+
+        repo=$(params.git-repository-name)
+        revision=$(params.git-revision)
+        namespace=$(echo "tekline-"$repo"-"$revision | sed s'/[^A-Za-z0-9\-]//' | tr '[:upper:]' '[:lower:]')
+
+        kubectl get namespace ${namespace} || kubectl create namespace ${namespace}
+        kubectl get sa tekline -n ${namespace} || kubectl create sa -n ${namespace} tekline
+
+        kubectl get rolebinding -n ${namespace} tekline-edit || \
+          kubectl create rolebinding tekline-edit         \
+                    --clusterrole=edit                    \
+                    --serviceaccount=${namespace}:tekline \
+                    --namespace=${namespace}
+
+        SECRETS=$(kubectl get secret -o name -n tekton-pipelines -l tekline.joyrex2001.com/sync-to-delegate=true)
+
+        SA=$(kubectl get sa tekline -n ${namespace} -o json | jq -r '.secrets[].name')
+
+        set +x
+        for SECRET in $SECRETS
+        do {
+            API_VERSION=$(echo $VALUE | jq -r '.apiVersion')
+            DATA=$(echo $VALUE | jq '.data')
+            KIND=$(echo $VALUE | jq -r '.kind')
+            TYPE=$(echo $VALUE | jq -r '.type')
+            NAME=$(echo $VALUE | jq -r '.metadata.name')
+            ANNOTATIONS=$(echo $VALUE | jq '.metadata.annotations |= with_entries(select(.key|test("^tekton"))) | .metadata.annotations' 2> /dev/null || echo '{}')
+
+            echo "
+            {
+                \"apiVersion\": \"${API_VERSION}\",
+                \"data\": ${DATA},
+                \"kind\": \"${KIND}\",
+                \"metadata\": {
+                    \"name\": \"${NAME}\",
+                    \"annotations\": ${ANNOTATIONS}
+                },
+                \"type\": \"${TYPE}\"
+            }
+            " | kubectl apply -f - -n ${namespace}
+
+            if echo "$SA" | grep -q ${NAME}; then
+              echo "${NAME} secret already present"
+            else
+              kubectl patch sa tekline -n ${namespace} --type=json --patch "[{\"op\":\"add\",\"path\":\"/secrets/-\",\"value\":{\"name\":\"${NAME}\"}}]"
+            fi
+
+        } done
+        set -x
+
+        echo ${namespace} | tee $(results.namespace.path)

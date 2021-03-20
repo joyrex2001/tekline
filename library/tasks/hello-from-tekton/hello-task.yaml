@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: hello-task
+spec:
+  params:
+    - name: git-url
+    - name: git-revision
+    - name: git-repository-name
+    - name: git-push-user-email
+  steps:
+    - name: hello
+      image: docker.io/joyrex2001/tekline:latest
+      script: |
+        #!/bin/bash
+        
+        echo "Hello, pipeline started!"
+        echo
+        echo "git-url: "$(params.git-url)
+        echo "git-revision: "$(params.git-revision)
+        echo "git-repository-name: "$(params.git-repository-name)
+        echo "git-push-user-email: "$(params.git-push-user-email)

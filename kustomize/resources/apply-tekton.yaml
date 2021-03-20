@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: apply-tekton
+  annotations:
+    tekton.dev/tags: git
+spec:
+  params:
+    - name: TEKLINE_IMAGE
+      default: docker.io/joyrex2001/tekline:latest
+    - name: namespace
+  workspaces:
+    - name: source
+
+  steps:
+    - name: apply-tekton
+      image: "$(params.TEKLINE_IMAGE)"
+      workingDir: /workspace/source
+      script: |
+        #!/bin/bash
+        set -euxo pipefail
+        
+        PRUNE_LIST=' --prune-whitelist=tekton.dev/v1beta1/task --prune-whitelist=tekton.dev/v1beta1/pipeline '
+        kustomize build tekton | kubectl apply $PRUNE_LIST --prune --all -f - -n $(params.namespace)

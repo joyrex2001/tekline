@@ -1,0 +1,69 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: delegate-pipeline
+  labels:
+    name: delegate-pipeline
+spec:
+  params:
+    - name: git-url
+    - name: git-revision
+    - name: git-repository-name
+    - name: git-push-user-email
+
+  workspaces:
+    - name: source
+  
+  tasks:
+    - name: clone
+      taskRef:
+        name: git-clone
+      workspaces:
+      - name: output
+        workspace: source
+      params:
+      - name: url
+        value: $(params.git-url)
+      - name: revision
+        value: $(params.git-revision)
+      - name: depth
+        value: "1"
+
+    - name: create-namespace
+      taskRef:
+        name: create-namespace
+      params:
+        - name: git-repository-name
+          value: $(params.git-repository-name)
+        - name: git-revision
+          value: $(params.git-revision)
+
+    - name: apply-tekton
+      runAfter:
+        - create-namespace
+        - clone
+      taskRef:
+        name: apply-tekton
+      params:
+        - name: namespace
+          value: "$(tasks.create-namespace.results.namespace)"
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: start-pipeline
+      runAfter:
+        - apply-tekton
+      taskRef:
+        name: trigger-pipelines
+      params:
+        - name: namespace
+          value: $(tasks.create-namespace.results.namespace)
+        - name: git-url
+          value: $(params.git-url)
+        - name: git-revision
+          value: $(params.git-revision)
+        - name: git-repository-name
+          value: $(params.git-repository-name)
+        - name: git-push-user-email
+          value: $(params.git-push-user-email)

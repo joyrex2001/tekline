@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: trigger-pipelines
+spec:
+  params:
+    - name: TEKLINE_IMAGE
+      default: docker.io/joyrex2001/tekline:latest
+    - name: namespace
+    - name: git-url
+    - name: git-revision
+    - name: git-repository-name
+    - name: git-push-user-email
+
+  steps:
+    - name: trigger-pipelineruns
+      image: "$(params.TEKLINE_IMAGE)"
+      script: |
+        #!/bin/sh
+        set -euxo pipefail
+
+        echo "--- 
+        metadata:
+          name: source-pvc
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          volumeMode: Filesystem
+          resources:
+            requests:
+              storage: 32Gi
+        " > ./pvc.yaml
+
+        echo "
+        securityContext:
+          fsGroup: 1001
+        " > ./pod.yaml
+
+        namespace=$(params.namespace)
+        for pipeline in $(tkn pipeline ls -o=name -n ${namespace} | sed 's/.*\///')
+        do {
+          tkn pipeline start ${pipeline}                                  \
+                    --pod-template ./pod.yaml                             \
+                    -w name=workspace,volumeClaimTemplateFile=./pvc.yaml  \
+                    -p git-url=$(params.git-url)                          \
+                    -p git-revision=$(params.git-revision)                \
+                    -p git-repository-name=$(params.git-repository-name)  \
+                    -p git-push-user-email=$(params.git-push-user-email)  \
+                    -s tekline                                            \
+                    -n $(params.namespace)
+        } done

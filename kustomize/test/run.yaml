@@ -1,0 +1,33 @@
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: delegate-pipeline-run
+  generateName: delegate-pipeline-run-
+  labels:
+    app.kubernetes.io/component: delegate-pipeline
+spec:
+  serviceAccountName: delegate-pipeline
+  podTemplate:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1001
+  pipelineRef:
+    name: delegate-pipeline
+  params:
+    - name: git-url
+      value: https://github.com/joyrex2001/tekline.git
+    - name: git-revision
+      value: master
+    - name: git-repository-name
+      value: tekline
+    - name: git-push-user-email
+      value: ""
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi

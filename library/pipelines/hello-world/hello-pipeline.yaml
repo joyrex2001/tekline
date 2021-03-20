@@ -1,0 +1,25 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: hello-from-tekton
+spec:
+  params:
+    - name: git-url
+    - name: git-revision
+    - name: git-repository-name
+    - name: git-push-user-email
+  workspaces:
+    - name: workspace
+  tasks:
+    - name: start-pipeline
+      taskRef:
+        name: hello-task
+      params:
+        - name: git-url
+          value: $(params.git-url)
+        - name: git-revision
+          value: $(params.git-revision)
+        - name: git-repository-name
+          value: $(params.git-repository-name)
+        - name: git-push-user-email
+          value: $(params.git-push-user-email)
