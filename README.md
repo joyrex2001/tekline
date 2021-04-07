@@ -37,3 +37,7 @@ The delegating pipeline automatically creates a new namespace, including a servi
 ## Secret syncing
 
 In case secrets are required in delegated pipelines, the suggested approach to support these is to have these secrets available in the tekton-pipelines namespace. The tekline implementation will copy over all secrets that have the `tekline.joyrex2001.com/sync-to-delegate=true` label. When copied over, it will remove all labels and annotations, except for annotations that start with tekton.
+
+## Running multiple pipelines
+
+The delegate pipeline setup supports running multiple pipelines in the same namespace next to each other. These pipeline will all be triggered automatically once the delegate pipeline is triggered. In order to be able to reference the same tasks in the different pipelines, optionally even using different versions of the same task, a different name is needed for the tasks. Otherwise both pipelines would try to create the same task, which Kustomize by design doesn't allow. It also makes sure that different pipelines cannot override eachothers tasks. This is achieved by adding a prefix to all tasks, conveniently provided by Kustomize. In order for Kustomize to properly create the override, we need to tell it which fields are name references, using the kustomizeconfig component.  

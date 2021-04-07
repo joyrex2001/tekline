@@ -1,0 +1,9 @@
+nameReference:
+- kind: Task
+  fieldSpecs:
+  - path: spec/tasks/taskRef/name
+    kind: Pipeline
+- kind: Task
+  fieldSpecs:
+  - path: spec/finally/taskRef/name
+    kind: Pipeline
