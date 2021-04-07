@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
 - https://github.com/joyrex2001/tekline.git//library/pipelines/hello-world?ref=master
+- https://github.com/joyrex2001/tekline.git//library/pipelines/hello-world-2?ref=master
