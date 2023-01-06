@@ -20,14 +20,14 @@ spec:
         set -euxo pipefail
 
         namespace=$(params.namespace)
-        for pipeline in $(kubectl get pipeline -l tekline.pietervincken.com/skip!=true -o=name -n ${namespace})
+        for pipeline in $(kubectl get pipeline -l tekline.joyrex2001.com/skip!=true -o=name -n ${namespace})
         do {
 
           echo "Evaluating: $pipeline"
           kubectl get ${pipeline} -n ${namespace} -o json > /tmp/pipeline-json
 
-          regex_match=$(cat /tmp/pipeline-json | jq --raw-output '.metadata.annotations["tekline.pietervincken.com/run-regex"]')
-          regex_skip=$(cat /tmp/pipeline-json | jq --raw-output '.metadata.annotations["tekline.pietervincken.com/skip-regex"]')
+          regex_match=$(cat /tmp/pipeline-json | jq --raw-output '.metadata.annotations["tekline.joyrex2001.com/run-regex"]')
+          regex_skip=$(cat /tmp/pipeline-json | jq --raw-output '.metadata.annotations["tekline.joyrex2001.com/skip-regex"]')
 
           if [[ $regex_skip != "null" ]] && echo $revision | grep -qE "$regex_skip" 
           then
