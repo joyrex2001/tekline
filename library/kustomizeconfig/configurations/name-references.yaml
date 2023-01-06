@@ -7,3 +7,7 @@ nameReference:
   fieldSpecs:
   - path: spec/finally/taskRef/name
     kind: Pipeline
+- kind: ConfigMap
+  fieldSpecs:
+    - path: spec/volumes/configMap/name
+      kind: Task
