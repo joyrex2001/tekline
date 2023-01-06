@@ -11,24 +11,7 @@ spec:
     - name: git-repository-name
     - name: git-push-user-email
 
-  workspaces:
-    - name: source
-  
   tasks:
-    - name: clone
-      taskRef:
-        name: git-clone
-      workspaces:
-      - name: output
-        workspace: source
-      params:
-      - name: url
-        value: $(params.git-url)
-      - name: revision
-        value: $(params.git-revision)
-      - name: depth
-        value: "1"
-
     - name: create-namespace
       taskRef:
         name: create-namespace
@@ -41,15 +24,17 @@ spec:
     - name: apply-tekton
       runAfter:
         - create-namespace
-        - clone
       taskRef:
         name: apply-tekton
       params:
         - name: namespace
           value: "$(tasks.create-namespace.results.namespace)"
-      workspaces:
-        - name: source
-          workspace: source
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+        - name: depth
+          value: "1"
 
     - name: start-pipeline
       runAfter:
