@@ -92,7 +92,7 @@ spec:
         ## If tekline SA mounts secrets (pre k8s 1.23) make sure filtering is enabled. 
         ## secretlist=$(kubectl get sa tekline -n ${namespace} -o json | jq --raw-output '.secrets // [] | select(.name|test("^tekline"))')
 
-        secretlist=$(kubectl get sa tekline -n ${namespace} -o json | jq --raw-output '.secrets // [] | [.[].name]')
+        secretlist=$(kubectl get sa tekline -n ${namespace} -o json | jq --raw-output '.secrets // [] | [.[]]')
 
         ## Get service account and add filtered secrets list into it
         kubectl get sa tekline -n ${namespace} -o json | jq --raw-output "{
@@ -113,7 +113,7 @@ spec:
         echo "Add secrets to service account"
 
         ## merge the two json files, combining the arrays of secrets
-        jq -s '.[].secrets = ([.[].secrets]|flatten) | .[0]' ${sa} ${secrets} > ${newsa}
+        jq -s '.[].secrets = ([.[].secrets]|flatten|unique) | .[0] ' ${sa} ${secrets} > ${newsa}
         kubectl apply -f ${newsa}
 
         echo "Label target namespace"
