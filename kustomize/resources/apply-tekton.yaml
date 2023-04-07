@@ -135,7 +135,7 @@ spec:
         #!/bin/bash
         set -euxo pipefail
 
-        PRUNE_LIST=' --prune-whitelist=tekton.dev/v1beta1/task --prune-whitelist=tekton.dev/v1beta1/pipeline '
+        PRUNE_LIST=' --prune-whitelist=tekton.dev/v1beta1/task --prune-whitelist=tekton.dev/v1beta1/pipeline  --prune-whitelist=tekton.dev/v1/task --prune-whitelist=tekton.dev/v1/pipeline '
         kustomize build tekton | kubectl apply $PRUNE_LIST --prune --all -f - -n $(params.namespace)
   volumes:
     - name: shared-volume
