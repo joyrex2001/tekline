@@ -28,8 +28,8 @@ RUN curl -L0 $(curl -s https://api.github.com/repos/kubernetes-sigs/kustomize/re
     &&  mv ./kustomize /downloads/
 
 ## Download tkn
-RUN curl -LO https://github.com/tektoncd/cli/releases/download/v0.17.0/tkn_0.17.0_Linux_x86_64.tar.gz \
-    && tar xvzf tkn_0.17.0_Linux_x86_64.tar.gz -C /downloads tkn \
+RUN curl -LO https://github.com/tektoncd/cli/releases/download/v0.30.0/tkn_0.30.0_Linux_x86_64.tar.gz \
+    && tar xvzf tkn_0.30.0_Linux_x86_64.tar.gz -C /downloads tkn \
     && chmod 755 /downloads/tkn
 
 #################
